@@ -1,32 +1,33 @@
 import requests
 from bs4 import BeautifulSoup
 
-url = 'https://habr.com/ru/all/'
-KEYWORDS = ['дизайн', 'фото', 'web', 'python', 'проект', '3D']
+base_url = 'https://habr.com'
+url = base_url + '/ru/all/'
+KEYWORDS = ['дизайн', 'фото', 'web', 'python', 'проект', 'Android', 'продукт']
 headers = {
-    'authority': 'www.kith.com',
-    'cache-control': 'max-age=0',
-    'upgrade-insecure-requests': '1',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.106 Safari/537.36',
-    'sec-fetch-dest': 'document',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-user': '?1',
-    'accept-language': 'en-US,en;q=0.9',
 }
 
 request_url = requests.get(url, headers=headers)
 soup = BeautifulSoup(request_url.text, 'html.parser')
 
 articles = soup.find_all('article', class_='tm-articles-list__item')
+result = {}
 for article in articles:
     article_texts = article.find_all(class_='article-formatted-body article-formatted-body article-formatted-body_version-2')
     article_texts = [article_text.text.strip() for article_text in article_texts]
-    for text in article_texts:
+    for art_text in article_texts:
         for keyword in KEYWORDS:
-            if keyword in text:
-                print(f'найдено {keyword} в: {text}')
+            if keyword in art_text:
+                data_pub = article.find(class_='tm-article-snippet__datetime-published').find('time').attrs['datetime'][:10]
+                article_title = article.find('a', class_='tm-article-snippet__title-link').find('span').text
+                article_href = article.find('a', class_='tm-article-snippet__title-link').attrs['href']
+                article_link = base_url + article_href
+                result_list = [data_pub, article_title, article_link]
+                result[article_title] = result_list
 
-            else:
-                print(f'слово {keyword} не найдено')
+
+
+for val in result.values():
+    print(val)
+
